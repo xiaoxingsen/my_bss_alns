@@ -1,5 +1,5 @@
 from config import *
-from base import greedy_get_a_possible_solution
+from help_function import greedy_get_a_possible_solution
 import copy
 from copy import deepcopy
 
@@ -50,6 +50,7 @@ class Solution:
         )
 
         return new_instance
+
     def cal_score(self):
         Cf = self.vrp_data.fixed_cost  # 每辆卡车的固定成本系数
         Cc1 = self.vrp_data.handling_cost_per_unit  # 每单位搬运货物的成本
@@ -57,12 +58,13 @@ class Solution:
         Cm1 = self.vrp_data.metro_transport_cost_per_unit  # 每单位地铁运输量的成本
 
         # 1. 计算卡车固定成本
-        truck_fixed_cost = Cf * len(self.turck_route)
+        active_truck_routes = [route for route in self.turck_route if not (len(route[0]) == 1 and route[0][0] == 0)]
+        truck_fixed_cost = Cf * len(active_truck_routes)
 
         # 2. 计算卡车的搬运货物成本和旅行时间成本
         handling_cost = 0
         travel_cost = 0
-        for route in self.turck_route:
+        for route in active_truck_routes:
             path, arrive_times, leave_times, workloads, load_history = route
 
             # 计算搬运货物成本
@@ -94,6 +96,11 @@ class Solution:
 
         # 统计卡车路径上的收到和送出货物量
         for path, _, _, workloads, _ in turck_route:
+
+            # 如果路径只包含仓库点，跳过检查
+            if len(path) == 1 and path[0] == 0:
+                continue
+
             for idx, site in enumerate(path):
                 if idx == 0:
                     continue  # 跳过仓库
@@ -170,6 +177,10 @@ class Solution:
         time_window_end = time if is_departure else time + 1
 
         for path, arrive_times, _, _, _ in turck_route:
+            # 如果路径只包含仓库点，跳过检查
+            if len(path) == 1 and path[0] == 0:
+                continue
+
             if station in path:
                 idx = path.index(station)
                 truck_arrival_time = arrive_times[idx]
@@ -185,6 +196,10 @@ class Solution:
         # 遍历每条路径
         for route in turck_route:
             path, arrive_times, leave_times, workloads, load_history = route
+
+            # 如果路径只包含仓库点，跳过检查
+            if len(path) == 1 and path[0] == 0:
+                continue
 
             # 检查载重量是否超载
             for load in load_history:

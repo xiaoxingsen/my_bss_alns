@@ -1,5 +1,5 @@
-from alns import Alns
-from base import QuestionDataHandle
+from ALNS import Alns
+from help_function import QuestionDataHandle
 def run(data_file,seed):
     (deposite_list, cargo_site_dict,metro_cargo_site_dict, normal_cargo_site_dict,points_df, distance_matrix_df, time_matrix_df,
      metro_travel_times, metro_schedule_df, departure_times_df, riv_ijk_indices_df) = QuestionDataHandle().get_data(

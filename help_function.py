@@ -1,13 +1,13 @@
-import pickle
-from collections import namedtuple, defaultdict
-import random
-import numpy as np
-from scipy.spatial.distance import pdist, squareform
-import copy
-from copy import deepcopy
-from functools import wraps
 from config import *
 
+from algorithm.metro_insert import metro_greedy_repair, metro_intermodal_repair, metro_regret_repair, \
+    metro_random_repair
+from algorithm.metro_remove import metro_random_destroy, metro_shaw_destroy, metro_zone_destroy, \
+    metro_worst_distance_destroy
+from algorithm.truck_insert import truck_intermodal_repair, truck_random_repair, truck_greedy_repair, \
+    truck_regret_repair
+from algorithm.truck_remove import truck_random_destroy, truck_shaw_location_destroy, truck_zone_destroy, \
+    truck_worst_distance_destroy
 
 class QuestionDataHandle:
     def __init__(self):
@@ -35,7 +35,7 @@ class QuestionDataHandle:
             if row['Station Index'] == 0:  # 仓库点 (第一个和最后一个点)
                 deposite_x = row['x']
                 deposite_y = row['y']
-                deposite_loc.append([deposite_x,deposite_y])
+                deposite_loc.append([deposite_x, deposite_y])
             elif row['Station Index'] == points_df.shape[0] - 1:
                 break
             else:
@@ -48,7 +48,7 @@ class QuestionDataHandle:
                     capacity=row['capacity'],
                     initial_inventory=row['initial_inventory'],
                     desired_inventory=row['desired_inventory'],
-                    if_metro_station= row['if_metro_station']
+                    if_metro_station=row['if_metro_station']
                 )
                 cargo_site_list.append(cargo_site)
                 cargo_site_dict[index] = cargo_site
@@ -57,11 +57,12 @@ class QuestionDataHandle:
                 else:
                     normal_cargo_site_dict[index] = cargo_site
 
+        return deposite_loc, cargo_site_dict, metro_cargo_site_dict, normal_cargo_site_dict, points_df, distance_matrix_df, time_matrix_df, metro_travel_times, metro_schedule_df, departure_times_df, riv_ijk_indices_df
 
-        return deposite_loc, cargo_site_dict,metro_cargo_site_dict, normal_cargo_site_dict,points_df, distance_matrix_df, time_matrix_df, metro_travel_times, metro_schedule_df, departure_times_df, riv_ijk_indices_df
 
 class VRPData:
-    def __init__(self, deposite_loc, cargo_site_dict,metro_cargo_site_dict,normal_cargo_site_dict,departure_times_df,):
+    def __init__(self, deposite_loc, cargo_site_dict, metro_cargo_site_dict, normal_cargo_site_dict,
+                 departure_times_df, ):
         self.deposite_loc = deposite_loc
         # 各站点信息字典
         self.cargo_site_dict = cargo_site_dict
@@ -80,14 +81,16 @@ class VRPData:
         self.cargo_site_loc = [(cargo_site.location_x, cargo_site.location_y) for cargo_site in
                                cargo_site_dict.values()]
         # 地铁站点的位置字典
-        self.metro_cargo_site_loc = [(metro_ccargo_site.location_x, metro_ccargo_site.location_y) for metro_ccargo_site in
-                               metro_cargo_site_dict.values()]
+        self.metro_cargo_site_loc = [(metro_ccargo_site.location_x, metro_ccargo_site.location_y) for metro_ccargo_site
+                                     in
+                                     metro_cargo_site_dict.values()]
         # 各站点到仓库的距离
         self.cargo_site_dep_dis = {}
         # 站点之间的距离字典
         self.cargo_site_dis = {}
         # 地铁站点之间的地铁距离字典
         self.metro_metro_dis = {}
+
         self.departure_times_dict = departure_times_df['Departure Time'].to_dict()
         self.sorted_distances = {}  # 新增的字典，用于存储每个站点到其他站点的排序后的距离信息
         # 车辆平均速度
@@ -105,13 +108,18 @@ class VRPData:
         self.metro_farthest_station_dict = {}
         self.cal_metro_farthest_station()
         self.vehicle_capacity = qc
-        self.fixed_cost = Cf # 每辆卡车的固定成本系数
-        self.handling_cost_per_unit = Cc1# 每单位搬运货物的成本
-        self.travel_cost_per_unit_distance  = Cc2 # 每单位距离的旅行时间成本
-        self.metro_transport_cost_per_unit   = Cm1# 每单位地铁运输量的成本
+        self.fixed_cost = Cf  # 每辆卡车的固定成本系数
+        self.handling_cost_per_unit = Cc1  # 每单位搬运货物的成本
+        self.travel_cost_per_unit_distance = Cc2  # 每单位距离的旅行时间成本
+        self.metro_transport_cost_per_unit = Cm1  # 每单位地铁运输量的成本
+        self.num_trucks = num_trucks
+
+
+
+
 
     def dis_cal(self):
-        (dep_location_x ,dep_location_y) = self.deposite_loc[0]
+        (dep_location_x, dep_location_y) = self.deposite_loc[0]
         # 计算仓库到每个货场站点的距离，并存入 cargo_site_dep_dis 和 cargo_site_dis
         for cargo_ix, cargo_site in self.cargo_site_dict.items():
             distance_to_depot = np.linalg.norm(
@@ -131,7 +139,7 @@ class VRPData:
             for j in range(num_cargo_sites):
                 if i != j:
                     self.cargo_site_dis[(cargo_site_keys[i], cargo_site_keys[j])] = \
-                    distance_matrix[i, j]
+                        distance_matrix[i, j]
 
         # 计算地铁站点之间的距离矩阵
         metro_cargo_site_keys = list(self.metro_cargo_site_dict.keys())
@@ -144,7 +152,8 @@ class VRPData:
             for j in range(num_metro_sites):
                 if i != j:
                     self.metro_metro_dis[(metro_cargo_site_keys[i], metro_cargo_site_keys[j])] = \
-                    metro_distance_matrix[i, j] / metrospeed_ration
+                        metro_distance_matrix[i, j] / metrospeed_ration
+
 
     def calculate_travel_times(self):
         # 计算卡车旅行时间
@@ -170,7 +179,6 @@ class VRPData:
             # 按照距离从小到大排序
             distances.sort(key=lambda x: x[1])
             self.sorted_distances[site] = distances
-
 
     def cal_metro_farthest_station(self):
         """
@@ -198,12 +206,13 @@ def greedy_get_a_possible_solution(vrp_data):
                      vrp_data.cargo_site_dep_dis[cargo_ix], cargo_ix)
                     for cargo_ix in vrp_data.all_sites]
     # 排序先考虑距离最近的货物站点，其次是开始时间最早的货物站点，最后是货物重量
-    car_dis_list.sort(key=lambda car_dis: (car_dis[1], car_dis[0].start_time,  car_dis[0].cargo_weight))
+    car_dis_list.sort(key=lambda car_dis: (car_dis[1], car_dis[0].start_time, car_dis[0].cargo_weight))
 
     # 总是假设 车辆可以在最早时间到达第一个货物点
     initial_load_1 = max(site.cargo_weight for site in vrp_data.cargo_site_dict.values() if site.cargo_weight > 0)
-    initial_load_2 = min(vrp_data.vehicle_capacity + site.cargo_weight for site in vrp_data.cargo_site_dict.values() if site.cargo_weight < 0)
-    initial_load = min(initial_load_1,initial_load_2)
+    initial_load_2 = min(vrp_data.vehicle_capacity + site.cargo_weight for site in vrp_data.cargo_site_dict.values() if
+                         site.cargo_weight < 0)
+    initial_load = min(initial_load_1, initial_load_2)
     carload = initial_load
     elapse_time = 0
 
@@ -293,10 +302,15 @@ def greedy_get_a_possible_solution(vrp_data):
 
     # 最后将路径信息记录到 route_info
     turck_route.append((path.copy(), arrive_times.copy(), leave_times.copy(), workloads.copy(), load_history.copy()))
+
+    # 添加缺失的卡车路径，只包含仓库点
+    while len(turck_route) < num_trucks:
+        turck_route.append(([0], [0], [0], [0], [0]))  # 仅包含仓库点的路径
+
     return turck_route, metro_routes
 
 
-def cal_add_time( vrp_data,cargo_ix, handle_time, last_cargo_ix, car_type='', car=None):
+def cal_add_time(vrp_data, cargo_ix, handle_time, last_cargo_ix, car_type='', car=None):
     # 如果没有上一个货物站点，则仅返回作业时间
     if last_cargo_ix:
         if not car_type:
@@ -307,5 +321,31 @@ def cal_add_time( vrp_data,cargo_ix, handle_time, last_cargo_ix, car_type='', ca
         drive_time = vrp_data.cargo_site_dis[(last_cargo_ix, cargo_ix)] / vrp_data.average_speed
         return handle_time + drive_time
     return handle_time
+
+
+def createDict(key):
+    # key = [metro_greedy_repair, metro_intermodal_repair, metro_regret_repair, metro_random_repair,
+    #        metro_random_destroy,
+    #        metro_shaw_destroy, metro_zone_destroy, metro_worst_distance_destroy, truck_intermodal_repair,
+    #        truck_random_repair, truck_greedy_repair, truck_regret_repair, truck_random_destroy, truck_shaw_destroy,
+    #        truck_zone_destroy, truck_worst_distance_destroy]
+    value = np.zeros(len(key), int)
+    dic = dict(zip(key, value))
+    return dic
+
+def updateDict(dic, destroy, repair, val):
+    """
+    update dict with value (using times and operator score)
+    :param dic: the dict to be updated
+    :param destroy: destroy operator
+    :param repair: repair operator
+    :param val: value
+    :return: dict
+    """
+    dic[destroy] += val
+    dic[repair] += val
+    return dic
+
+
 
 
