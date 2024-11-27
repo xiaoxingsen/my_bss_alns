@@ -12,7 +12,7 @@ class truck_random_destroy:
                 """
         # 统计当前所有卡车路径中的所有站点
         all_stations = set()
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, _, _, _, _ = route
             all_stations.update(path)
 
@@ -27,7 +27,7 @@ class truck_random_destroy:
         new_truck_routes = []
 
         # 遍历每条卡车路径，去掉对应的站点及相关信息
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, arrive_times, leave_times, workloads, load_history = route
 
             # 生成新路径，保留未被移除的站点及其相关信息
@@ -56,7 +56,7 @@ class truck_shaw_demand_destroy:
         # 计算需要移除的节点数量
         # 统计当前所有卡车路径中的所有站点
         all_stations = set()
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, _, _, _, _ = route
             all_stations.update(path)
 
@@ -67,7 +67,7 @@ class truck_shaw_demand_destroy:
 
         # 统计所有非仓库的站点
         all_stations = set()
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, _, _, _, _ = route
             all_stations.update(path)
 
@@ -86,7 +86,7 @@ class truck_shaw_demand_destroy:
         phi_time_window = 0  # 时间窗权重
 
         # 计算与初始移除站点的关联性
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, _, _, _, _ = route
             for node in path[1:]:
                 if node in all_stations and node != initial_removal:
@@ -116,7 +116,7 @@ class truck_shaw_demand_destroy:
                     current_node = customer
                     # 重新计算与新移除节点的关联性
                     similarity = {}
-                    for route in solution.turck_route:
+                    for route in solution.truck_route:
                         path, _, _, _, _ = route
                         for node in path[1:]:
                             if node in all_stations and node not in removal:
@@ -141,7 +141,7 @@ class truck_shaw_demand_destroy:
         new_truck_routes = []
 
         # 遍历每条卡车路径，去掉对应的站点及相关信息
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, arrive_times, leave_times, workloads, load_history = route
 
             # 生成新路径，保留未被移除的站点及其相关信息
@@ -170,7 +170,7 @@ class truck_shaw_location_destroy:
         # 计算需要移除的节点数量
         # 统计当前所有卡车路径中的所有站点
         all_stations = set()
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, _, _, _, _ = route
             all_stations.update(path)
 
@@ -181,7 +181,7 @@ class truck_shaw_location_destroy:
 
         # 统计所有非仓库的站点
         all_stations = set()
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, _, _, _, _ = route
             all_stations.update(path)
 
@@ -200,7 +200,7 @@ class truck_shaw_location_destroy:
         phi_time_window = 0  # 时间窗权重
 
         # 计算与初始移除站点的关联性
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, _, _, _, _ = route
             for node in path[1:]:
                 if node in all_stations and node != initial_removal:
@@ -231,7 +231,7 @@ class truck_shaw_location_destroy:
                     current_node = customer
                     # 重新计算与新移除节点的关联性
                     similarity = {}
-                    for route in solution.turck_route:
+                    for route in solution.truck_route:
                         path, _, _, _, _ = route
                         for node in path[1:]:
                             if node in all_stations and node not in removal:
@@ -257,7 +257,7 @@ class truck_shaw_location_destroy:
         new_truck_routes = []
 
         # 遍历每条卡车路径，去掉对应的站点及相关信息
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, arrive_times, leave_times, workloads, load_history = route
 
             # 生成新路径，保留未被移除的站点及其相关信息
@@ -286,7 +286,7 @@ class truck_shaw_timewindow_destroy:
         # 计算需要移除的节点数量
         # 统计当前所有卡车路径中的所有站点
         all_stations = set()
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, _, _, _, _ = route
             all_stations.update(path)
 
@@ -297,7 +297,7 @@ class truck_shaw_timewindow_destroy:
 
         # 统计所有非仓库的站点
         all_stations = set()
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, _, _, _, _ = route
             all_stations.update(path)
 
@@ -316,7 +316,7 @@ class truck_shaw_timewindow_destroy:
         phi_time_window = 1  # 时间窗权重
 
         # 计算与初始移除站点的关联性
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, _, _, _, _ = route
             for node in path[1:]:
                 if node in all_stations and node != initial_removal:
@@ -347,7 +347,7 @@ class truck_shaw_timewindow_destroy:
                     current_node = customer
                     # 重新计算与新移除节点的关联性
                     similarity = {}
-                    for route in solution.turck_route:
+                    for route in solution.truck_route:
                         path, _, _, _, _ = route
                         for node in path[1:]:
                             if node in all_stations and node not in removal:
@@ -373,7 +373,7 @@ class truck_shaw_timewindow_destroy:
         new_truck_routes = []
 
         # 遍历每条卡车路径，去掉对应的站点及相关信息
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, arrive_times, leave_times, workloads, load_history = route
 
             # 生成新路径，保留未被移除的站点及其相关信息
@@ -404,7 +404,7 @@ class truck_worst_distance_destroy:
         distance_cost = {}
 
         # 遍历每条卡车路径
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, arrive_times, leave_times, workloads, load_history = route
 
             # 遍历路径中的非仓库站点
@@ -436,7 +436,7 @@ class truck_worst_distance_destroy:
         new_truck_routes = []
 
         # 遍历每条卡车路径，去掉对应的站点及相关信息
-        for route in solution.turck_route:
+        for route in solution.truck_route:
             path, arrive_times, leave_times, workloads, load_history = route
 
             # 生成新路径，保留未被移除的站点及其相关信息

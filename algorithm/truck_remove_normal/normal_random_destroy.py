@@ -10,33 +10,27 @@ def destroy(solution, destroy_rate_low, destroy_rate_upper, vrp_data):
     :param vrp_data:
     :return: a removed route  and a removed station list
     """
-    # 统计当前所有卡车路径中的所有站点
-    all_stations = set()
-    for route in solution.turck_route:
+    # Get the set of all non-metro stations currently used in truck routes
+    normal_stations = set()
+    for route in solution.truck_route:
         path, _, _, _, _ = route
-        all_stations.update(path)
+        normal_stations.update([site for site in path if site in vrp_data.normal_sites])
 
-    all_stations.discard(0)
-    # 随机选择要移除的站点数量
+    # Ensure the depot (site 0) is not considered for removal
+    normal_stations.discard(0)
+
+    # Determine the number of stations to remove based on the random destruction rate
     destroy_rate = random.uniform(destroy_rate_low, destroy_rate_upper)
-    num_stations_to_remove = max(1, math.ceil(len(all_stations) * destroy_rate))
+    num_stations_to_remove = max(1, math.ceil(len(normal_stations) * destroy_rate))
 
+    # Randomly select the stations to remove
+    stations_to_remove = random.sample(normal_stations, num_stations_to_remove)
 
-    # 随机选择要移除的站点
-    stations_to_remove = random.sample(all_stations, num_stations_to_remove)
-
+    # Create new truck routes by removing the selected stations and their associated data
     new_truck_routes = []
-
-    # 遍历每条卡车路径，去掉对应的站点及相关信息
-    for route in solution.turck_route:
+    for route in solution.truck_route:
         path, arrive_times, leave_times, workloads, load_history = route
-
-        # 生成新路径，保留未被移除的站点及其相关信息
-        new_path = []
-        new_arrive_times = []
-        new_leave_times = []
-        new_workloads = []
-        new_load_history = []
+        new_path, new_arrive_times, new_leave_times, new_workloads, new_load_history = [], [], [], [], []
 
         for idx, site in enumerate(path):
             if site not in stations_to_remove:
@@ -46,7 +40,6 @@ def destroy(solution, destroy_rate_low, destroy_rate_upper, vrp_data):
                 new_workloads.append(workloads[idx])
                 new_load_history.append(load_history[idx])
 
-        # 生成新的路径信息
         new_route_info = (new_path, new_arrive_times, new_leave_times, new_workloads, new_load_history)
         new_truck_routes.append(new_route_info)
 

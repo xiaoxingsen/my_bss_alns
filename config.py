@@ -33,8 +33,8 @@ Cm2 = 0.6
 # 假设每个单位货币的库存相关惩罚成本
 Cp = 1000
 # 设置每装卸一辆单车所需要的人工时间 （分钟）
-tc = 0.1  # 货车
-tm = 0.05  # 地铁
+tc = 1  # 货车
+tm = 5  # 地铁
 T_end = 60  # 所有车辆必须完成旅行的截止时间
 T_cor = 30
 T_DAY = 480
@@ -48,6 +48,7 @@ path_destroy_max = 3
 max_try_times = 200  # 设得越大 单次搜索时间加大 但搜到feasible solution可能性也越大  太小了可能 单次总是搜不到feasible solution
 accept_scores = (1.5, 1.2, 0.8, 0.5)
 max_car_no = 999
+capacity = 150
 # ***** end config *****
 
 # 配置计算 及 其他定义

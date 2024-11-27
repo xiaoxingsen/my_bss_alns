@@ -9,20 +9,10 @@ class Solution:
         self.vrp_data = vrp_data_ins
 
         if not turck_route:
-            self.turck_route,self.metro_routes = greedy_get_a_possible_solution(self.vrp_data)
+            self.truck_route,self.metro_routes = greedy_get_a_possible_solution(self.vrp_data)
         else:
-            self.turck_route = turck_route
+            self.truck_route = turck_route
             self.metro_routes = metro_routes
-
-        if not self.route_info_auth_ok(self.turck_route, self.metro_routes):
-            raise ValueError("The route_info is not feasible!")
-
-        if not self.collabor_ok(self.turck_route, self.metro_routes):
-            raise ValueError("1")
-
-        if not self.demand_inventory_ok(self.turck_route, self.metro_routes):
-            raise ValueError("2")
-
         self.obj = score if score else self.cal_score()
 
     def clone(self):
@@ -36,7 +26,7 @@ class Solution:
         创建一个新的 Solution 实例，通过旧实例的值初始化，同时运行初始化过程
         """
         # 深度复制属性值
-        new_turck_route = deepcopy(self.turck_route)
+        new_turck_route = deepcopy(self.truck_route)
         new_metro_routes = deepcopy(self.metro_routes)
         new_score = self.obj
 
@@ -51,6 +41,18 @@ class Solution:
 
         return new_instance
 
+    def is_feasible(self):
+        if not self.route_info_auth_ok(self.truck_route, self.metro_routes):
+            return False
+
+        if not self.collabor_ok(self.truck_route, self.metro_routes):
+            return False
+
+        if not self.demand_inventory_ok(self.truck_route, self.metro_routes):
+            return False
+
+        return True
+
     def cal_score(self):
         Cf = self.vrp_data.fixed_cost  # 每辆卡车的固定成本系数
         Cc1 = self.vrp_data.handling_cost_per_unit  # 每单位搬运货物的成本
@@ -58,7 +60,7 @@ class Solution:
         Cm1 = self.vrp_data.metro_transport_cost_per_unit  # 每单位地铁运输量的成本
 
         # 1. 计算卡车固定成本
-        active_truck_routes = [route for route in self.turck_route if not (len(route[0]) == 1 and route[0][0] == 0)]
+        active_truck_routes = [route for route in self.truck_route if not (len(route[0]) == 1 and route[0][0] == 0)]
         truck_fixed_cost = Cf * len(active_truck_routes)
 
         # 2. 计算卡车的搬运货物成本和旅行时间成本

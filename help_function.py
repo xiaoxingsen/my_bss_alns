@@ -5,9 +5,9 @@ from algorithm.metro_insert import metro_greedy_repair, metro_intermodal_repair,
 from algorithm.metro_remove import metro_random_destroy, metro_shaw_destroy, metro_zone_destroy, \
     metro_worst_distance_destroy
 from algorithm.truck_insert import truck_intermodal_repair, truck_random_repair, truck_greedy_repair, \
-    truck_regret_repair
-from algorithm.truck_remove import truck_random_destroy, truck_shaw_location_destroy, truck_zone_destroy, \
-    truck_worst_distance_destroy
+    truck_regret_dis_repair
+from algorithm.truck_remove_normal import normal_random_destroy, normal_shaw_location_destroy, normal_zone_destroy, \
+    normal_worst_distance_destroy
 
 class QuestionDataHandle:
     def __init__(self):
@@ -84,6 +84,12 @@ class VRPData:
         self.metro_cargo_site_loc = [(metro_ccargo_site.location_x, metro_ccargo_site.location_y) for metro_ccargo_site
                                      in
                                      metro_cargo_site_dict.values()]
+
+        # 站点需求字典
+        self.site_demand = {site_id: site.cargo_weight for site_id, site in cargo_site_dict.items()}
+        # 站点起始库存字典
+        self.site_inventory = {site_id: site.initial_inventory for site_id, site in cargo_site_dict.items()}
+
         # 各站点到仓库的距离
         self.cargo_site_dep_dis = {}
         # 站点之间的距离字典

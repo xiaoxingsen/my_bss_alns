@@ -12,6 +12,8 @@ class parameter:
         # 执行地铁路径操作所需卡车操作次数
         self.N_metro = 50
 
+        self.N_truck_Mstation = 2
+
         # 新解优于最优解时得分
         self.theta1 = 20
 
